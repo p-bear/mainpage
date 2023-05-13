@@ -47,9 +47,19 @@
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script>
     const BASE_ADDRESS = 'https://p-bear.duckdns.org/gateway';
+    let redirect_uri = encodeURI('https://p-bear.duckdns.org');
+    let client_id = 'commonApp';
 
     window.onload = function () {
-
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('redirect_uri') != null) {
+            console.log('redirect_uri set: ' + urlParams.get('redirect_uri'));
+            redirect_uri = urlParams.get('redirect_uri');
+        }
+        if (urlParams.get('client_id') != null) {
+            console.log('client_id set: ' + urlParams.get('client_id'));
+            client_id = urlParams.get('client_id');
+        }
     }
 
     $(document).ready(function () {
@@ -65,8 +75,6 @@
 
     function login() {
         const authorizePath = '/authorize';
-        const client_id = 'commonApp';
-        const redirect_uri = encodeURI('https://p-bear.duckdns.org');
         const username = document.getElementById('login_id').value;
         const password = document.getElementById('login_pswd').value;
 
