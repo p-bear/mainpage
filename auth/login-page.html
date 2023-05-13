@@ -30,10 +30,12 @@
 
 	<div class="signup">
         <label for="chk" aria-hidden="true">회원가입</label>
-        <input type="text" id="register_id" placeholder="아이디" required="">
-        <input type="password" id="register_pswd" placeholder="비밀번호" required="">
-        <input type="password" id="register_pswdChk" placeholder="비밀번호 확인" required="">
-        <button>가입</button>
+        <form id="register_form">
+            <input type="text" id="register_id" placeholder="아이디" required="">
+            <input type="password" id="register_pswd" placeholder="비밀번호" required="">
+            <input type="password" id="register_pswdChk" placeholder="비밀번호 확인" required="">
+            <button>가입</button>
+        </form>
 	</div>
 
 
@@ -44,7 +46,7 @@
 
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script>
-    const BASE_ADDRESS = 'http://192.168.0.103:40000';
+    const BASE_ADDRESS = 'https://p-bear.duckdns.org/gateway';
 
     window.onload = function () {
 
@@ -53,6 +55,10 @@
     $(document).ready(function () {
         $("#login_form").submit(function () {
             login();
+            return false;
+        });
+        $("#register_form").submit(function () {
+            register();
             return false;
         });
     });
@@ -90,6 +96,42 @@
             }
         });
 
+    }
+
+    function register() {
+        if (!isValidRegisterPassword()) {
+            alert("비밀번호 확인이 맞지 않습니다.")
+            return;
+        }
+
+        const postAccountPath = '/main/api/account'
+        const body = {
+            "userId": document.getElementById('register_id').value,
+            "password": document.getElementById('register_pswd').value
+        };
+
+        $.ajax({
+            url: BASE_ADDRESS + postAccountPath,
+            type: "post",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify(body),
+            error: function (e) {
+                alert("회원가입에 실패하였습니다.")
+                console.log(e);
+            },
+            success: function (data, textStatus) {
+                alert("회원가입 성공!");
+                window.location.reload()
+            }
+        });
+    }
+
+    function isValidRegisterPassword() {
+        const password = document.getElementById('register_pswd').value;
+        const passwordCheck = document.getElementById('register_pswdChk').value;
+        return password === passwordCheck;
     }
 </script>
 
