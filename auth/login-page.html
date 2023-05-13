@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="kr">
+<html lang="kr" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
     <title>북극곰은콜라 로그인</title>
@@ -11,7 +11,6 @@
 <html lang="kr">
 <head>
     <title>북극곰은콜라 로그인</title>
-    <link rel="stylesheet" type="text/css" href="slide navbar style.css">
     <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -20,22 +19,21 @@
     <input type="checkbox" id="chk" aria-hidden="true">
 
 
-    <div class="signup">
-        <form>
-            <label for="chk" aria-hidden="true">로그인</label>
-            <input type="text" name="txt" placeholder="ID" required="">
-            <input type="password" name="pswd" placeholder="Password" required="">
+    <div class="login">
+        <label for="chk" aria-hidden="true">로그인</label>
+        <form id="login_form">
+            <input type="text" id="login_id" placeholder="아이디" required="">
+            <input type="password" id="login_pswd" placeholder="비밀번호" required="">
             <button>로그인</button>
         </form>
     </div>
 
-	<div class="login">
-		<form>
-			<label for="chk" aria-hidden="true">회원가입</label>
-			<input type="text" name="txt" placeholder="ID" required="">
-			<input type="password" name="pswd" placeholder="Password" required="">
-			<button>회원가입</button>
-		</form>
+	<div class="signup">
+        <label for="chk" aria-hidden="true">회원가입</label>
+        <input type="text" id="register_id" placeholder="아이디" required="">
+        <input type="password" id="register_pswd" placeholder="비밀번호" required="">
+        <input type="password" id="register_pswdChk" placeholder="비밀번호 확인" required="">
+        <button>가입</button>
 	</div>
 
 
@@ -44,6 +42,56 @@
 </html>
 <!-- partial -->
 
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script>
+    const BASE_ADDRESS = 'http://192.168.0.103:40000';
+
+    window.onload = function () {
+
+    }
+
+    $(document).ready(function () {
+        $("#login_form").submit(function () {
+            login();
+            return false;
+        });
+    });
+
+    function login() {
+        const authorizePath = '/authorize';
+        const client_id = 'commonApp';
+        const redirect_uri = encodeURI('https://p-bear.duckdns.org');
+        const username = document.getElementById('login_id').value;
+        const password = document.getElementById('login_pswd').value;
+
+        const query = {
+            "response_type": "token",
+            "client_id": client_id,
+            "client_authentication_method": "client_secret_basic",
+            "state": "xyz",
+            "redirect_uri": redirect_uri,
+            "username": username,
+            "password": password
+        };
+
+        $.ajax({
+            url: BASE_ADDRESS + authorizePath,
+            type: "get",
+            data: query,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            error: function (e) {
+                alert("로그인에 실패하였습니다.")
+                console.log(e);
+            },
+            success: function (data, textStatus) {
+                window.location = redirect_uri;
+            }
+        });
+
+    }
+</script>
 
 </body>
 </html>
