@@ -29,7 +29,8 @@
             url: GATEWAY_URL + GOOGLE_TOKEN_PATH,
             type: "post",
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + window.localStorage.getItem('main_access_token')
             },
             data: JSON.stringify(body),
             error: function (e) {
