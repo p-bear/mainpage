@@ -28,7 +28,7 @@
         </form>
     </div>
 
-	<div class="signup">
+    <div class="signup">
         <label for="chk" aria-hidden="true">회원가입</label>
         <form id="register_form">
             <input type="text" id="register_id" placeholder="아이디" required="">
@@ -36,7 +36,7 @@
             <input type="password" id="register_pswdChk" placeholder="비밀번호 확인" required="">
             <button>가입</button>
         </form>
-	</div>
+    </div>
 
 
 </div>
@@ -59,6 +59,10 @@
         if (urlParams.get('client_id') != null) {
             console.log('client_id set: ' + urlParams.get('client_id'));
             client_id = urlParams.get('client_id');
+        }
+        if (urlParams.get('state') != null) {
+            console.log('state set: ' + urlParams.get('state'));
+            client_id = urlParams.get('state');
         }
     }
 
@@ -87,23 +91,23 @@
             "username": username,
             "password": password
         };
+        const url = BASE_ADDRESS + authorizePath + "?" + new URLSearchParams(query).toString()
 
-        $.ajax({
-            url: BASE_ADDRESS + authorizePath,
-            type: "get",
-            data: query,
+        fetch(url, {
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
+                'Content-Type': 'application/x-www-form-urlencoded',
             },
-            error: function (e) {
-                alert("로그인에 실패하였습니다.")
-                console.log(e);
-            },
-            success: function (data, textStatus) {
-                window.location = redirect_uri;
+            redirect: "follow",
+        }).then(function (response) {
+            if (response.status === 401) {
+                alert("로그인에 실패하였습니다.");
+                console.log(response.status);
+                return;
             }
-        });
 
+            console.log(response.url);
+            window.location.href = response.url;
+        });
     }
 
     function register() {
@@ -145,3 +149,4 @@
 
 </body>
 </html>
+

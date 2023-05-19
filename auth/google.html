@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="kr">
+<head>
+    <meta charset="UTF-8">
+    <title>구글 연동 로그인</title>
+</head>
+<body>
+
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script>
+    const GATEWAY_URL = 'https://p-bear.duckdns.org/gateway';
+    const GOOGLE_TOKEN_PATH = '/oauth/token/google';
+
+    let code =
+    window.onload = function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('code') != null) {
+            console.log('code: ' + urlParams.get('code'))
+            sendGoogleTokenUpgrade(urlParams.get('code'))
+        }
+    }
+
+    function sendGoogleTokenUpgrade(code) {
+        const body = {
+            "code": code
+        };
+
+        $.ajax({
+            url: GATEWAY_URL + GOOGLE_TOKEN_PATH,
+            type: "post",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify(body),
+            error: function (e) {
+                alert("Google 계정 연동에 실패하였습니다.")
+                console.log(e);
+            },
+            success: function (data, textStatus) {
+                alert("구글 계정 연동 성공!");
+            }
+        });
+    }
+
+</script>
+
+</body>
+</html>
