@@ -53,26 +53,31 @@
           </ul>
         </section>
         <section class="page-content">
-          <article class="board">
-            <p>Kkt</p>
-            <form action="/gateway/pbear-app-toolbox/kkt/mini" class="form" method="post" enctype="multipart/form-data">
-              <div class="form-element">
-                <label for="kktFile">파일</label>
-                <input type="file" name="file" id="kktFile" accept="text/plain" required />
-              </div>
-              <button><i class="fas fa-file"></i> GO</button>
-            </form>
-          </article>
-          <article class="board">
-            <p>Kkt-csv</p>
-            <form action="/gateway/pbear-app-toolbox/kkt/csv" class="form" method="post" enctype="multipart/form-data">
-              <div class="form-element">
-                <label for="kktFile2">파일</label>
-                <input type="file" name="file" id="kktFile2" accept="text/plain" required />
-              </div>
-              <button><i class="fas fa-file"></i> GO</button>
-            </form>
-          </article>
+          <details>
+            <summary>KKT</summary>
+            <article class="board">
+              <p>Kkt</p>
+              <form action="/gateway/pbear-app-toolbox/kkt/mini" class="form" method="post" enctype="multipart/form-data">
+                <div class="form-element">
+                  <label for="kktFile">파일</label>
+                  <input type="file" name="file" id="kktFile" accept="text/plain" required />
+                </div>
+                <button><i class="fas fa-file"></i> GO</button>
+              </form>
+            </article>
+            <article class="board">
+              <p>Kkt-csv</p>
+              <form action="/gateway/pbear-app-toolbox/kkt/csv" class="form" method="post" enctype="multipart/form-data">
+                <div class="form-element">
+                  <label for="kktFile2">파일</label>
+                  <input type="file" name="file" id="kktFile2" accept="text/plain" required />
+                  <label for="ext">확장자</label>
+                  <input type="text" name="ext" id="ext" value="csv">
+                </div>
+                <button><i class="fas fa-file"></i> GO</button>
+              </form>
+            </article>
+          </details>
         </section>
       </main>
     </div>
