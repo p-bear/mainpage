@@ -54,7 +54,7 @@
         </section>
         <section class="page-content">
           <details>
-            <summary>KKT</summary>
+            <summary>KKT-Simple</summary>
             <article class="board">
               <p>Kkt</p>
               <form action="/gateway/pbear-app-toolbox/kkt/mini" class="form" method="post" enctype="multipart/form-data">
@@ -78,10 +78,27 @@
               </form>
             </article>
           </details>
+          <details>
+            <summary>KKT-Simple</summary>
+            <article class="board" id="kktListTag"></article>
+            <article class="board">
+              <p>Kkt</p>
+              <form id="postAndReturnForm" action="/gateway/pbear-app-toolbox/kkt" class="form" method="post" enctype="multipart/form-data">
+                <div class="form-element">
+                  <label for="kktFile3">파일</label>
+                  <input type="file" name="file" id="kktFile3" accept="text/plain" required />
+                </div>
+                <button><i class="fas fa-file"></i> GO</button>
+              </form>
+            </article>
+          </details>
         </section>
       </main>
     </div>
+    <script src="../assets/js/jquery.min.js"></script>
     <script>
+      const url = "https://p-bear.duckdns.org/gateway/pbear-app-toolbox";
+
       const menuLinks = document.querySelectorAll(".sidebar .menu a");
 
       for (const link of menuLinks) {
@@ -95,6 +112,107 @@
         });
       }
 
+      const postAndReturnForm = document.getElementById('postAndReturnForm');
+      postAndReturnForm.addEventListener('submit', function (event) {
+        event.preventDefault(); // 폼 기본 제출 동작을 막음
+
+        // 데이터를 서버에 제출
+        fetch(postAndReturnForm.action, {
+          method: postAndReturnForm.method,
+          body: new FormData(postAndReturnForm)
+        })
+                .then(response => {
+                  if (response.ok) {
+                    // 성공 시 현재 페이지로 강제 리로드
+                    window.location.reload();
+                  } else {
+                    console.error('Submission failed.');
+                  }
+                })
+                .catch(error => {
+                  console.error('Error:', error);
+                });
+      });
+
+      $(document).ready(function () {
+        refreshKktList();
+      })
+
+      function refreshKktList() {
+        $.get(url + "/kkt", function (data, status) {
+          if (status !== "success") {
+            return;
+          }
+
+          const kktListTag = document.getElementById("kktListTag");
+          kktListTag.innerText = "";
+          data["kktList"].forEach(function (kkt, idx) {
+            kktListTag.append(createKktElement(kkt));
+          });
+        });
+      }
+
+      function createKktElement(kkt) {
+        const element = document.createElement("div");
+        element.classList.add("form");
+        element.innerHTML = `
+          <span class="box">${kkt["name"]}</span>
+          <span class="bg-cyan"><button onclick="downloadKktFile('${kkt["name"]}','csv')"><i class="fas fa-file"></i> CSV</button></span>
+          <span class="bg-purple"><button onclick="downloadKktFile('${kkt["name"]}','json')"><i class="fas fa-file"></i> JSON</button></span>
+          <span class="bg-pale"><button onclick="deleteKktFile('${kkt["name"]}')"><i class="fas fa-ban"></i></button></span>
+        `;
+        return element;
+      }
+
+      function downloadKktFile(name, ext) {
+        $.ajax({
+          url: url + "/kkt/" + name + "/" + ext,
+          type: 'GET',
+          cache: false,
+          xhrFields: {
+            responseType: "blob"
+          },
+          success: function (data, status, xhr) {
+            const blob = new Blob([data], { type: xhr.getResponseHeader('Content-Type') });
+            const url = window.URL.createObjectURL(blob);
+
+            // 다운로드 트리거
+            const a = document.createElement('a');
+            a.href = url;
+
+            // 파일 이름 처리
+            const filename = name + "." + ext;
+            a.download = filename.replace(/['"]/g, ''); // 따옴표 제거
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            // Blob URL 제거
+            window.URL.revokeObjectURL(url);
+          },
+          error: function (xhr, status, error) {
+            console.error('File download failed:', error);
+          }
+        })
+      }
+
+      function deleteKktFile(name) {
+        if(!confirm("정말 삭제?")){
+          return;
+        }
+        $.ajax({
+          url: url + "/kkt/" + name,
+          type: 'DELETE',
+
+          success: function (data, status, xhr) {
+            refreshKktList();
+          },
+          error: function (xhr, status, error) {
+            console.error('delete failed:', error);
+          }
+        })
+      }
     </script>
   </body>
 </html>
