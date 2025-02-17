@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="kor">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KKT Split</title>
+    <link rel="stylesheet" href="../css/all.css" />
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <!-- Carrotsuite navigation -->
+        <nav class="carrotsuite-nav">
+          <div class="icons left">
+            <a href="#" class="nav-item"><i class="fas fa-bars"></i></a>
+            <a href="#" class="nav-item"> <i class="fas fa-compress"></i></a>
+            <a href="#" class="nav-item"> <i class="fas fa-search"></i></a>
+          </div>
+          <div class="icons right">
+            <a href="#" class="nav-item">
+              <div class="badge"><span>0</span></div>
+              <i class="far fa-bell"></i>
+            </a>
+            <a href="#" class="nav-item"><i class="far fa-envelope"></i></a>
+          </div>
+          <div class="user" id="user">
+            <a href="#" class="user-link">북극곰은콜라</a>
+            <div class="user-img-wrapper">
+              <img src="../images/useravatar.png" alt="User 1" />
+            </div>
+          </div>
+        </nav>
+        <!-- end of feeds navigation -->
+      </header>
+      <main class="main">
+        <section class="sidebar">
+          <h3>TOOL BOX</h3>
+          <ul class="menu">
+            <li>
+              <a href="/mainpage/toolbox/index.html" class="active" title="Home">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+              </a>
+            </li>
+            <li>
+              <a href="/mainpage/toolbox/index.html" title="Dashboard">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+              </a>
+            </li>
+          </ul>
+        </section>
+        <section class="page-content">
+          <article class="board" id="kktMainArticle">
+            <div><span id="kktFileNameSpan"></span></div>
+            <div>
+              <span><label for="tokenSize">tokenSize</label><input type="number" id="tokenSize" value="20000"/></span>
+              <span><button onclick="createDividedBtn()">DDD</button></span>
+            </div>
+            <div id="dividedBtnDiv"></div>
+            <div><button class="bg-pale" onclick="copyInstructions()">INSTRUCTION</button></div>
+            <div id="analyzedData"></div>
+            <div>
+              <div>
+                <h3>Prefix</h3>
+              </div>
+              <p id="prefixP"></p>
+            </div>
+            <div>
+              <div>
+                <h3>Suffix</h3>
+              </div>
+              <p id="suffixP"></p>
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+    <script src="../../assets/js/jquery.min.js"></script>
+    <script>
+      const url = "https://p-bear.duckdns.org/gateway/pbear-app-toolbox";
+      let prefix = "";
+      let suffix = "";
+      let kktData = "";
+      let dateFrom = new Date();
+      let dateTo = new Date('2000-01-01');
+      let analyzedData = new Map();
+      let datedData = new Map();
+      let untilDateList = [];
+
+      const menuLinks = document.querySelectorAll(".sidebar .menu a");
+
+      for (const link of menuLinks) {
+        link.addEventListener("mouseenter", function () {
+          if (window.matchMedia("(max-width: 626px)").matches) {
+            const tooltip = this.querySelector("span").textContent;
+            this.setAttribute("title", tooltip);
+          } else {
+            this.removeAttribute("title");
+          }
+        });
+      }
+
+      $(document).ready(function () {
+        refreshPage();
+      })
+
+      function refreshPage() {
+        const currentUrl = new URL(window.location.href);
+        const kktFileName = new URL(currentUrl).searchParams.get('name');
+
+        document.getElementById('kktFileNameSpan').innerText = kktFileName;
+
+        getKktConfig();
+        downloadKktFile(kktFileName, 'json');
+      }
+
+      function getKktConfig() {
+        $.ajax({
+          url: url + "/kkt/config",
+          type: 'GET',
+          cache: false,
+          success: function (data, status, xhr) {
+            prefix = data["prefix"];
+            suffix = data["suffix"];
+            document.getElementById("prefixP").innerText = prefix;
+            document.getElementById("suffixP").innerText = suffix;
+          },
+          error: function (xhr, status, error) {
+            console.error('File download failed:', error);
+            alert("File download failed")
+          }
+        })
+      }
+
+      function downloadKktFile(name, ext) {
+        $.ajax({
+          url: url + "/kkt/" + name + "/" + ext,
+          type: 'GET',
+          cache: false,
+          success: function (data, status, xhr) {
+            kktData = JSON.parse(data);
+            analyzeKktData();
+            showAnalyzedData();
+          },
+          error: function (xhr, status, error) {
+            console.error('File download failed:', error);
+            alert("File download failed")
+          }
+        })
+      }
+
+      function createDividedBtn() {
+        const rootDiv = document.getElementById("dividedBtnDiv");
+        rootDiv.innerText = '';
+        untilDateList = [];
+
+        const tokenSize = document.getElementById("tokenSize").value;
+        let currentSize = 0;
+        for (const entry of analyzedData) {
+          const currDate = entry[0];
+          const value = entry[1];
+          currentSize = currentSize + value["wordCount"];
+          if (currentSize > tokenSize) {
+            // 하나 더 큼;
+            untilDateList.push(currDate);
+            currentSize = value["wordCount"];
+            const btnNum = untilDateList.length - 1;
+            $('#dividedBtnDiv').append('<span><button class="bg-cyan" onclick="copyDataToClipboard('+btnNum+')">'+btnNum+'</button></span>   ');
+          }
+        }
+        const lastDate = dateTo;
+        lastDate.setDate(lastDate.getDate() + 1);
+        untilDateList.push(lastDate);
+        const btnNum2 = untilDateList.length - 1;
+        $('#dividedBtnDiv').append('<span><button class="bg-cyan" onclick="copyDataToClipboard('+btnNum2+')">'+btnNum2+'</button></span>');
+      }
+
+      function copyDataToClipboard(i) {
+        // start <= data < end
+        let startDate = new Date(dateFrom.toLocaleDateString());
+        let endDate = new Date(untilDateList[i]);
+        if (i > 0) {
+          startDate = new Date(untilDateList[i-1]);
+        }
+
+        const resultArr = [];
+        for (const entry of datedData) {
+          const currDate = new Date(entry[0]);
+          if (currDate >= startDate && currDate < endDate) {
+            entry[1].forEach((value, dateStr) => {
+              resultArr.push(value);
+            });
+          }
+        }
+        console.log(resultArr);
+
+        const copyText = generateText(resultArr, i, untilDateList.length);
+        navigator.clipboard.writeText(copyText).then(
+                function () {
+                  console.log("copy success");
+                },
+                function (err) {
+                  alert('copy fail');
+                  console.error('copy error', err);
+                });
+      }
+
+      function generateText(resultArr, index, totalSize) {
+        const part = index+1 + '/' + totalSize;
+        let result = 'Do not answer yet. This is just another part of the text I want to send you. Just receive and acknowledge as "Part ';
+        result = result + part;
+        result = result + ' received" and wait for the next part.';
+        result = result + '\n[START PART ' + part + ']'
+
+        let jsonStr = JSON.stringify(resultArr);
+        if (index !== 0) {
+          jsonStr = jsonStr.substring(1);
+          jsonStr = ',' + jsonStr;
+        }
+        if (index !== totalSize-1) {
+          jsonStr = jsonStr.substring(0, jsonStr.length - 1);
+        }
+
+        if (index === 0) {
+          result = result + '\n' + prefix;
+        }
+
+        result = result + '\n' + jsonStr;
+
+        if (index === totalSize-1) {
+          result = result + '\n' + suffix;
+        }
+
+        result = result + '\n[END PART ' + part + ']\n'
+        if (index !== totalSize-1) {
+          result = result + 'Remember not answering yet. Just acknowledge you received this part with the message "Part '
+          result = result + part + ' received" and wait for the next part.';
+        } else {
+          result = result + 'ALL PARTS SENT. Now you can continue processing the request.';
+        }
+
+        return result;
+      }
+
+      function analyzeKktData() {
+        let totalCount = 0;
+        for (const data of kktData) {
+          const currentTime = new Date(data['time']);
+          if (dateFrom > currentTime) {
+            dateFrom = currentTime;
+          }
+          if (dateTo < currentTime) {
+            dateTo = currentTime;
+          }
+
+          const dateStr = currentTime.toLocaleDateString();
+          totalCount = totalCount+data['message'].length;
+          analyzeSingleData(analyzedData, dateStr, data['message'], totalCount);
+          addToMap(datedData, dateStr, data);
+        }
+      }
+
+      function analyzeSingleData(map, date, message, totalCount) {
+        if (!map.has(date)) {
+          map.set(date, {'messageCount': 1, 'wordCount': message.length, 'totalCount': totalCount});
+          return;
+        }
+        const data = map.get(date);
+        data['messageCount'] = data['messageCount'] + 1;
+        data['wordCount'] = data['wordCount'] + message.length;
+        data['totalCount'] = totalCount;
+      }
+
+      function showAnalyzedData() {
+        analyzedData.forEach((value, date) => {
+          const analyzedElement = '<div>' +
+                  '<span>'+date+'</span>'+
+                  '<span>&emsp;'+value['messageCount']+'</span>'+
+                  '<span>&emsp;'+value['wordCount']+'</span>' +
+                  '<span>&emsp;'+value['totalCount']+'</span>' +
+                  '</div>'
+          $("#analyzedData").append(analyzedElement);
+        })
+      }
+
+      function addToMap(map, k, v) {
+        if (!map.has(k)) {
+          map.set(k, new Set());
+        }
+        map.get(k).add(v);
+      }
+
+      function copyInstructions() {
+        const copyText = `The total length of the content that I want to send you is too large to send in only one piece.
+
+For sending you that content, I will follow this rule:
+
+[START PART 1/10]
+this is the content of the part 1 out of 10 in total
+[END PART 1/10]
+
+Then you just answer: "Received part 1/10"
+
+And when I tell you "ALL PARTS SENT", then you can continue processing the data and answering my requests.`;
+        navigator.clipboard.writeText(copyText).then(
+                function () {
+                  console.log("copy success");
+                },
+                function (err) {
+                  alert('copy fail');
+                  console.error('copy error', err);
+                });
+      }
+    </script>
+  </body>
+</html>

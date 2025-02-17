@@ -80,6 +80,15 @@
           </details>
           <details>
             <summary>KKT-Simple</summary>
+            <article class="board">
+              <div>
+                <label for="kktPrefix">prefix</label>
+                <textarea id="kktPrefix" name="prefix" rows="4"></textarea>
+                <label for="kktSuffix">suffix</label>
+                <textarea id="kktSuffix" name="suffix" rows="4"></textarea>
+                <button onclick="postKktConfig()"><i class="fas fa-file"></i> GO</button>
+              </div>
+            </article>
             <article class="board" id="kktListTag"></article>
             <article class="board">
               <p>Kkt</p>
@@ -88,7 +97,7 @@
                   <label for="kktFile3">파일</label>
                   <input type="file" name="file" id="kktFile3" accept="text/plain" required />
                 </div>
-                <button><i class="fas fa-file"></i> GO</button>
+                <input type="submit"><i class="fas fa-file"></i> GO
               </form>
             </article>
           </details>
@@ -134,9 +143,39 @@
                 });
       });
 
+      function postKktConfig() {
+        const kktPrefix = document.getElementById('kktPrefix').value;
+        const kktSuffix = document.getElementById('kktSuffix').value;
+        $.ajax({
+          url: url + "/kkt/config",
+          async: false,
+          type: 'POST',
+          data: {
+            "prefix": kktPrefix,
+            "suffix": kktSuffix
+          },
+          contentType: 'application/x-www-form-urlencoded'
+        })
+                .done(function (result) {
+                  refreshKktConfig();
+                });
+      }
+
       $(document).ready(function () {
+        refreshKktConfig();
         refreshKktList();
       })
+
+      function refreshKktConfig() {
+        $.get(url + "/kkt/config", function (data, status) {
+          if (status !== "success") {
+            return;
+          }
+
+          document.getElementById("kktPrefix").innerText = data["prefix"];
+          document.getElementById("kktSuffix").innerText = data["suffix"];
+        });
+      }
 
       function refreshKktList() {
         $.get(url + "/kkt", function (data, status) {
@@ -159,6 +198,7 @@
           <span class="box">${kkt["name"]}</span>
           <span class="bg-cyan"><button onclick="downloadKktFile('${kkt["name"]}','csv')"><i class="fas fa-file"></i> CSV</button></span>
           <span class="bg-purple"><button onclick="downloadKktFile('${kkt["name"]}','json')"><i class="fas fa-file"></i> JSON</button></span>
+          <span class="bg-ash"><button onclick="toKktSplit('${kkt["name"]}')"><i class="fas fa-pager"></i> SPLIT</button></span>
           <span class="bg-pale"><button onclick="deleteKktFile('${kkt["name"]}')"><i class="fas fa-ban"></i></button></span>
         `;
         return element;
@@ -212,6 +252,10 @@
             console.error('delete failed:', error);
           }
         })
+      }
+
+      function toKktSplit(name) {
+        location.href= "page/kkt-split.html?name=" + name;
       }
     </script>
   </body>

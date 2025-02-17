@@ -256,7 +256,7 @@ button:not(:disabled),
 .page-content {
   grid-column: 2 / -1;
   margin: 3rem;
-  overflow: hidden;
+  overflow: auto;
 }
 .page-content .header {
   display: flex;
