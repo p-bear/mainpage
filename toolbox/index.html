@@ -107,6 +107,7 @@
     <script src="../assets/js/jquery.min.js"></script>
     <script>
       const url = "https://p-bear.duckdns.org/gateway/pbear-app-toolbox";
+      let suffix = "";
 
       const menuLinks = document.querySelectorAll(".sidebar .menu a");
 
@@ -172,6 +173,7 @@
             return;
           }
 
+          suffix = data["suffix"];
           document.getElementById("kktPrefix").innerText = data["prefix"];
           document.getElementById("kktSuffix").innerText = data["suffix"];
         });
@@ -199,6 +201,7 @@
           <span class="bg-cyan"><button onclick="downloadKktFile('${kkt["name"]}','csv')"><i class="fas fa-file"></i> CSV</button></span>
           <span class="bg-purple"><button onclick="downloadKktFile('${kkt["name"]}','json')"><i class="fas fa-file"></i> JSON</button></span>
           <span class="bg-ash"><button onclick="toKktSplit('${kkt["name"]}')"><i class="fas fa-pager"></i> SPLIT</button></span>
+          <span class="bg-deep-blue"><button onclick="copyToClipboard('${kkt["name"]}')"><i class="fas fa-pager"></i> COPY</button></span>
           <span class="bg-pale"><button onclick="deleteKktFile('${kkt["name"]}')"><i class="fas fa-ban"></i></button></span>
         `;
         return element;
@@ -256,6 +259,29 @@
 
       function toKktSplit(name) {
         location.href= "page/kkt-split.html?name=" + name;
+      }
+
+      function copyToClipboard(name) {
+        $.ajax({
+          url: url + "/kkt/" + name + "/json",
+          type: 'GET',
+          cache: false,
+          success: function (data, status, xhr) {
+            const copyData = data + '\n' + suffix;
+            navigator.clipboard.writeText(copyData).then(
+                    function () {
+                      console.log("copy success");
+                    },
+                    function (err) {
+                      alert('copy fail');
+                      console.error('copy error', err);
+                    });
+          },
+          error: function (xhr, status, error) {
+            console.error('File download failed:', error);
+            alert("File download failed")
+          }
+        })
       }
     </script>
   </body>
