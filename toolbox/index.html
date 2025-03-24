@@ -79,36 +79,60 @@
             </article>
           </details>
           <details>
-            <summary>KKT-Simple</summary>
+            <summary>KKT-CHJ</summary>
             <article class="board">
               <div>
-                <label for="kktPrefix">prefix</label>
-                <textarea id="kktPrefix" name="prefix" rows="4"></textarea>
-                <label for="kktSuffix">suffix</label>
-                <textarea id="kktSuffix" name="suffix" rows="4"></textarea>
-                <button onclick="postKktConfig()"><i class="fas fa-file"></i> GO</button>
+                <label for="kktPrefixCHJ">prefix</label>
+                <textarea id="kktPrefixCHJ" name="prefix" rows="4"></textarea>
+                <label for="kktSuffixCHJ">suffix</label>
+                <textarea id="kktSuffixCHJ" name="suffix" rows="4"></textarea>
+                <button onclick="postKktConfig('CHJ')"><i class="fas fa-file"></i> GO</button>
               </div>
             </article>
-            <article class="board" id="kktListTag"></article>
+            <article class="board" id="kktListTagCHJ"></article>
             <article class="board">
               <p>Kkt</p>
-              <form id="postAndReturnForm" action="/gateway/pbear-app-toolbox/kkt" class="form" method="post" enctype="multipart/form-data">
+              <form id="postAndReturnFormCHJ" action="/gateway/pbear-app-toolbox/kkt?filename=CHJ" class="form" method="post" enctype="multipart/form-data">
+                <div class="form-element">
+                  <label for="kktFileCHJ">파일</label>
+                  <input type="file" name="file" id="kktFileCHJ" accept="text/plain" required />
+                </div>
+                <input type="submit">
+              </form>
+            </article>
+          </details>
+          <details>
+            <summary>...</summary>
+            <article class="board">
+              <div>
+                <label for="kktPrefixKEB">prefix</label>
+                <textarea id="kktPrefixKEB" name="prefix" rows="4"></textarea>
+                <label for="kktSuffixKEB">suffix</label>
+                <textarea id="kktSuffixKEB" name="suffix" rows="4"></textarea>
+                <button onclick="postKktConfig('KEB')"><i class="fas fa-file"></i> GO</button>
+              </div>
+            </article>
+            <article class="board" id="kktListTagKEB"></article>
+            <article class="board">
+              <p>Kkt</p>
+              <form id="postAndReturnFormKEB" action="/gateway/pbear-app-toolbox/kkt?filename=KEB" class="form" method="post" enctype="multipart/form-data">
                 <div class="form-element">
                   <label for="kktFile3">파일</label>
                   <input type="file" name="file" id="kktFile3" accept="text/plain" required />
                 </div>
                 <input type="submit">
               </form>
-              <br><br><br><br><br><br><br><br><br><br><br><br><br><br>
             </article>
           </details>
+          <br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+          <br><br><br><br><br><br><br><br><br><br><br><br><br><br>
         </section>
       </main>
     </div>
     <script src="../assets/js/jquery.min.js"></script>
     <script>
       const url = "https://p-bear.duckdns.org/gateway/pbear-app-toolbox";
-      let suffix = "";
+      let suffix = {};
 
       const menuLinks = document.querySelectorAll(".sidebar .menu a");
 
@@ -123,78 +147,88 @@
         });
       }
 
-      const postAndReturnForm = document.getElementById('postAndReturnForm');
-      postAndReturnForm.addEventListener('submit', function (event) {
-        event.preventDefault(); // 폼 기본 제출 동작을 막음
+      formCont('postAndReturnFormKEB');
+      formCont('postAndReturnFormCHJ');
 
-        // 데이터를 서버에 제출
-        fetch(postAndReturnForm.action, {
-          method: postAndReturnForm.method,
-          body: new FormData(postAndReturnForm)
-        })
-                .then(response => {
-                  if (response.ok) {
-                    // 성공 시 현재 페이지로 강제 리로드
-                    window.location.reload();
-                  } else {
-                    console.error('Submission failed.');
-                  }
-                })
-                .catch(error => {
-                  console.error('Error:', error);
-                });
-      });
+      function formCont(formId) {
+        const postAndReturnForm = document.getElementById(formId);
+        postAndReturnForm.addEventListener('submit', function (event) {
+          event.preventDefault(); // 폼 기본 제출 동작을 막음
 
-      function postKktConfig() {
-        const kktPrefix = document.getElementById('kktPrefix').value;
-        const kktSuffix = document.getElementById('kktSuffix').value;
+          // 데이터를 서버에 제출
+          fetch(postAndReturnForm.action, {
+            method: postAndReturnForm.method,
+            body: new FormData(postAndReturnForm)
+          })
+                  .then(response => {
+                    if (response.ok) {
+                      // 성공 시 현재 페이지로 강제 리로드
+                      window.location.reload();
+                    } else {
+                      console.error('Submission failed.');
+                    }
+                  })
+                  .catch(error => {
+                    console.error('Error:', error);
+                  });
+        });
+      }
+
+      $(document).ready(function () {
+        refreshKktConfig("KEB");
+        refreshKktList("KEB");
+        refreshKktConfig("CHJ");
+        refreshKktList("CHJ");
+      })
+
+      function postKktConfig(configName) {
+        const kktPrefix = document.getElementById('kktPrefix'+configName).value;
+        const kktSuffix = document.getElementById('kktSuffix'+configName).value;
         $.ajax({
           url: url + "/kkt/config",
           async: false,
           type: 'POST',
           data: {
+            "configName": configName,
             "prefix": kktPrefix,
             "suffix": kktSuffix
           },
           contentType: 'application/x-www-form-urlencoded'
         })
                 .done(function (result) {
-                  refreshKktConfig();
+                  refreshKktConfig(configName);
                 });
       }
 
-      $(document).ready(function () {
-        refreshKktConfig();
-        refreshKktList();
-      })
-
-      function refreshKktConfig() {
-        $.get(url + "/kkt/config", function (data, status) {
+      function refreshKktConfig(configName) {
+        $.get(url + "/kkt/config?configName=" + configName, function (data, status) {
           if (status !== "success") {
             return;
           }
 
-          suffix = data["suffix"];
-          document.getElementById("kktPrefix").innerText = data["prefix"];
-          document.getElementById("kktSuffix").innerText = data["suffix"];
+          suffix[configName] = data["suffix"];
+          document.getElementById("kktPrefix"+configName).innerText = data["prefix"];
+          document.getElementById("kktSuffix"+configName).innerText = data["suffix"];
         });
       }
 
-      function refreshKktList() {
+      function refreshKktList(configName) {
         $.get(url + "/kkt", function (data, status) {
           if (status !== "success") {
             return;
           }
 
-          const kktListTag = document.getElementById("kktListTag");
+          const kktListTag = document.getElementById("kktListTag"+configName);
           kktListTag.innerText = "";
           data["kktList"].forEach(function (kkt, idx) {
-            kktListTag.append(createKktElement(kkt));
+            if (kkt["name"].startsWith(configName)) {
+              kktListTag.append(createKktElement(kkt, configName));
+            }
           });
         });
       }
 
-      function createKktElement(kkt) {
+      function createKktElement(kkt, configName) {
         const element = document.createElement("div");
         element.classList.add("form");
         element.innerHTML = `
@@ -202,8 +236,8 @@
           <span class="bg-cyan"><button onclick="downloadKktFile('${kkt["name"]}','csv')"><i class="fas fa-file"></i> CSV</button></span>
           <span class="bg-purple"><button onclick="downloadKktFile('${kkt["name"]}','json')"><i class="fas fa-file"></i> JSON</button></span>
           <span class="bg-ash"><button onclick="toKktSplit('${kkt["name"]}')"><i class="fas fa-pager"></i> SPLIT</button></span>
-          <span class="bg-deep-blue"><button onclick="copyToClipboard('${kkt["name"]}')"><i class="fas fa-pager"></i> COPY</button></span>
-          <span class="bg-pale"><button onclick="deleteKktFile('${kkt["name"]}')"><i class="fas fa-ban"></i></button></span>
+          <span class="bg-deep-blue"><button onclick="copyToClipboard('${kkt["name"]}', '${configName}')"><i class="fas fa-pager"></i> COPY</button></span>
+          <span class="bg-pale"><button onclick="deleteKktFile('${kkt["name"]}', '${configName}')"><i class="fas fa-ban"></i></button></span>
         `;
         return element;
       }
@@ -241,7 +275,7 @@
         })
       }
 
-      function deleteKktFile(name) {
+      function deleteKktFile(name, configName) {
         if(!confirm("정말 삭제?")){
           return;
         }
@@ -250,7 +284,7 @@
           type: 'DELETE',
 
           success: function (data, status, xhr) {
-            refreshKktList();
+            refreshKktList(configName);
           },
           error: function (xhr, status, error) {
             console.error('delete failed:', error);
@@ -262,13 +296,13 @@
         location.href= "page/kkt-split.html?name=" + name;
       }
 
-      function copyToClipboard(name) {
+      function copyToClipboard(name, configName) {
         $.ajax({
           url: url + "/kkt/" + name + "/json",
           type: 'GET',
           cache: false,
           success: function (data, status, xhr) {
-            const copyData = data + '\n' + suffix;
+            const copyData = data + '\n' + suffix[configName];
             navigator.clipboard.writeText(copyData).then(
                     function () {
                       console.log("copy success");
